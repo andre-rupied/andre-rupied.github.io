@@ -15,7 +15,7 @@
         }
 
         body {
-            background: #0f0f0f;
+            background: #0d0d0d;
             color: #e0e0e0;
             display: flex;
             flex-direction: column;
@@ -27,23 +27,23 @@
         }
 
         h1 {
-            font-size: 2rem;
+            font-size: 2.2rem;
             font-weight: bold;
-            background: linear-gradient(90deg, #0ff 0%, #00f 100%);
+            background: linear-gradient(90deg, #00c6ff, #0072ff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 10px;
         }
 
         p {
-            font-size: 1.1rem;
+            font-size: 1rem;
             margin-bottom: 20px;
             opacity: 0.8;
         }
 
         /* 🎛️ Bouton stylé */
         button {
-            background: linear-gradient(135deg, #00f, #0ff);
+            background: linear-gradient(135deg, #0072ff, #00c6ff);
             border: none;
             color: white;
             padding: 12px 24px;
@@ -51,14 +51,14 @@
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
-            transition: 0.3s ease-in-out;
-            box-shadow: 0px 4px 10px rgba(0, 255, 255, 0.3);
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0px 4px 10px rgba(0, 114, 255, 0.3);
         }
 
         button:hover {
-            background: linear-gradient(135deg, #0ff, #00f);
+            background: linear-gradient(135deg, #00c6ff, #0072ff);
             transform: scale(1.05);
-            box-shadow: 0px 6px 15px rgba(0, 255, 255, 0.5);
+            box-shadow: 0px 6px 15px rgba(0, 114, 255, 0.5);
         }
 
         /* 📌 Statut */
@@ -66,18 +66,38 @@
             font-size: 1rem;
             margin-top: 15px;
             font-weight: bold;
-            color: #0ff;
-            text-shadow: 0px 0px 5px rgba(0, 255, 255, 0.8);
+            color: #00c6ff;
+            text-shadow: 0px 0px 5px rgba(0, 198, 255, 0.8);
+        }
+
+        /* 📍 Adresse */
+        #address {
+            font-size: 1rem;
+            margin-top: 10px;
+            font-style: italic;
+            color: #ffcc00;
         }
 
         /* 🗺️ Carte stylée */
         #map {
-            height: 400px;
+            height: 50vh;
             width: 90%;
             max-width: 600px;
             margin-top: 20px;
             border-radius: 15px;
-            box-shadow: 0px 8px 20px rgba(0, 255, 255, 0.2);
+            box-shadow: 0px 8px 20px rgba(0, 114, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        /* 📱 Responsive */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            button {
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
@@ -87,6 +107,7 @@
     <p>Cliquez sur le bouton pour obtenir votre position exacte.</p>
     <button onclick="getLocation()">📍 Obtenir ma position</button>
     <p id="status"></p>
+    <p id="address"></p>
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -100,6 +121,8 @@
             }
 
             document.getElementById("status").innerText = "🔍 Recherche de votre position...";
+            document.getElementById("address").innerText = "";
+
             navigator.geolocation.getCurrentPosition(success, error, {
                 enableHighAccuracy: true,
                 timeout: 10000,
@@ -114,6 +137,10 @@
                 ✅ <strong>Longitude:</strong> ${longitude} <br>
                 🎯 <strong>Précision:</strong> ${Math.round(accuracy)} mètres
             `;
+
+            if (accuracy < 100) {
+                fetchAddress(latitude, longitude);
+            }
 
             if (!map) {
                 map = L.map('map').setView([latitude, longitude], 16);
@@ -132,6 +159,21 @@
 
         function error(err) {
             document.getElementById("status").innerText = `⚠️ Erreur : ${err.message}`;
+        }
+
+        function fetchAddress(lat, lon) {
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.display_name) {
+                        document.getElementById("address").innerHTML = `🏠 <strong>Adresse :</strong> ${data.display_name}`;
+                    } else {
+                        document.getElementById("address").innerText = "❌ Adresse introuvable.";
+                    }
+                })
+                .catch(() => {
+                    document.getElementById("address").innerText = "❌ Erreur lors de la récupération de l'adresse.";
+                });
         }
     </script>
 
